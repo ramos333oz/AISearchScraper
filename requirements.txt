@@ -1,0 +1,6 @@
+youtube-transcript-api
+feedparser
+openai
+python-dotenv
+requests
+schedule

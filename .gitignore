@@ -1,0 +1,19 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+ENV/
+env/
+.env
+
+# JSON / Storage
+history.json
+
+# IDEs
+.vscode/
+.idea/
+
+docs/
+system_prompt.md
+1-bulk_scraping_ideas.md
