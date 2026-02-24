@@ -31,13 +31,19 @@ It gives users a quick, actionable breakdown of high-value YouTube videos (speci
    python main.py
    ```
 
-## ☁️ Next Immediate Step: Cloud Deployment
+## ☁️ Cloud Deployment: GitHub Actions
 
-The script currently depends on a local `schedule` loop to check for videos every day at 9 AM.
-**The immediate next goal is to implement cloud deployment.**
+The script is currently hosted and automated via **GitHub Actions**. This allows the bot to run 24/7 without requiring a local computer to remain on.
 
-- The target platform is **GitHub Cloud (GitHub Actions)** or standard cloud hosting.
-- The objective is to configure a workflow/cron job so the script runs automatically in the cloud 24/7 without needing a personal computer to remain on.
+- **Schedule**: The workflow is configured to run automatically every day at **09:00 UTC**.
+- **State Persistence**: The bot automatically commits updates to `history.json` back to the repository after each run, ensuring it tracks processed videos across sessions.
+- **Manual Trigger**: The script can be triggered manually via the **Actions** tab in the GitHub repository.
+
+To set up your own deployment:
+
+1. Push the code to a private GitHub repository.
+2. Configure **Repository Secrets** for `OPENROUTER_API_KEY`, `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`, and `YOUTUBE_CHANNEL_ID`.
+3. Ensure **Workflow permissions** are set to "Read and write permissions" in Settings -> Actions -> General.
 
 ## 🔮 Future Implementations: Bulk & Monthly Scraping
 
