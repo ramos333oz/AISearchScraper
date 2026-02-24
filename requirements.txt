@@ -3,4 +3,3 @@ feedparser
 openai
 python-dotenv
 requests
-schedule

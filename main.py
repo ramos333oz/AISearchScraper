@@ -189,22 +189,10 @@ def job():
          save_history(history)
 
 def main():
-    logger.info("Starting YouTube Scraper Bot...")
+    logger.info("Starting YouTube Scraper Check via GitHub Actions...")
     
-    # Run once immediately on startup
+    # Run the job exactly once and exit
     job()
-    
-    # Then schedule it to run periodically. 
-    # For example: every 1 day. You can change this to `schedule.every().day.at("09:00").do(job)` if you want a specific time.
-    import schedule
-    import time
-    
-    schedule.every().day.at("09:00").do(job)
-    logger.info("Scheduler initialized. Checking for new videos once a day at 9AM.")
-    
-    while True:
-        schedule.run_pending()
-        time.sleep(60) # check the scheduler every minute to save CPU
 
 if __name__ == "__main__":
     main()
