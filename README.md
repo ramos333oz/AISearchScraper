@@ -1,4 +1,6 @@
-# YouTube Automation & Summarizer Bot 🤖
+# YouTube Automation & Summarizer Bot 
+
+I find that videos from AISearch youtube channel are very helpful, but due to time constraint, I find I struggle to complete every each of his newly uploaded video, so I created this bot specifically just to scrape the information from his newly uploaded videos, uses LLM to summarize it then send it to Telegram. 
 
 This project is an automated Python script designed to monitor a specific YouTube channel, fetch its latest video transcripts, generate executive summaries using AI (via OpenRouter), and deliver those summaries directly to a Telegram chat.
 
