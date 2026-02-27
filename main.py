@@ -5,7 +5,6 @@ import logging
 import feedparser
 import requests
 from dotenv import load_dotenv
-from youtube_transcript_api import YouTubeTranscriptApi
 from openai import OpenAI
 
 # Configure logging
@@ -71,21 +70,61 @@ def get_latest_video(channel_id):
     }
 
 def get_video_transcript(video_id):
-    """Fetch the transcript for a given video ID."""
-    from youtube_transcript_api.formatters import TextFormatter
+    """Fetch the transcript for a given video ID using yt-dlp."""
+    import yt_dlp
+    import webvtt
+    import glob
+
+    logger.info(f"Attempting to fetch transcript for {video_id} using yt-dlp...")
+    
+    # We will save the subtitle temporarily
+    ydl_opts = {
+        'skip_download': True,        # Don't download the video
+        'writesubtitles': True,       # Write manual subtitles
+        'writeautomaticsub': True,    # Write auto-generated subtitles if no manual ones
+        'subtitleslangs': ['en'],     # English
+        'outtmpl': f'{video_id}.%(ext)s', # Temporary filename
+        'quiet': True,
+        'no_warnings': True
+    }
+    
     try:
-        # Based on the documentation for the latest versions
-        ytt_api = YouTubeTranscriptApi()
-        transcript = ytt_api.fetch(video_id)
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            ydl.download([f'https://www.youtube.com/watch?v={video_id}'])
+            
+        # yt-dlp might save it as .en.vtt or similar depending on auto/manual
+        # Let's find the generated vtt file
+        vtt_files = glob.glob(f"{video_id}*.vtt")
         
-        # Format as plain text (no timestamps)
-        formatter = TextFormatter()
-        full_transcript = formatter.format_transcript(transcript)
+        if not vtt_files:
+            logger.warning(f"No English subtitles found for {video_id}.")
+            return "" # Return empty string meaning "processed, but no subs exist"
+            
+        vtt_file = vtt_files[0]
         
-        return full_transcript
+        # Parse the VTT and extract plain text
+        full_transcript = ""
+        for caption in webvtt.read(vtt_file):
+            # Clean up the text (remove newlines within the same caption frame)
+            text_cleaned = caption.text.replace('\n', ' ').strip()
+            # Avoid repeating exactly the same line immediately (common in auto-captions)
+            if not full_transcript.endswith(text_cleaned + " "):
+                full_transcript += text_cleaned + " "
+                
+        # Clean up the file
+        for f in vtt_files:
+             os.remove(f)
+             
+        return full_transcript.strip()
+        
     except Exception as e:
-        logger.error(f"Could not fetch transcript for {video_id}: {e}")
-        return None
+        logger.error(f"Fatal error fetching transcript for {video_id}: {e}")
+        # Clean up any partial files
+        vtt_files = glob.glob(f"{video_id}*.vtt")
+        for f in vtt_files:
+             try: os.remove(f) 
+             except: pass
+        return None # Return None meaning "Error, need to retry next time"
 
 def generate_summary(transcript, video_title):
     """Use OpenRouter LLM to generate a summary of the transcript."""
@@ -134,10 +173,13 @@ def send_telegram_message(text):
         response = requests.post(url, json=payload)
         if not response.ok:
             logger.error(f"Telegram API Error: {response.text}")
+            return False
         response.raise_for_status()
         logger.info("Successfully sent message to Telegram.")
+        return True
     except Exception as e:
         logger.error(f"Error sending message to Telegram: {e}")
+        return False
 
 def job():
     """Wrapper for the main scraping logic."""
@@ -163,28 +205,33 @@ def job():
     logger.info(f"New video detected! Fetching transcript for {video_id}...")
     transcript = get_video_transcript(video_id)
     
-    if transcript:
+    if transcript is None:
+        logger.error("Failed to fetch transcript due to an error. Will retry on next run.")
+        return # Exit without saving to history
+
+    if transcript != "":
         summary = generate_summary(transcript, title)
         
         if summary:
-            # We use HTML tags since we changed parse_mode to HTML
             message = f"🎬 <b>New Video Uploaded: {title}</b>\n🔗 <a href='{link}'>Watch here</a>\n\n<b>Summary:</b>\n{summary}"
             
-            # Telegram messages are limited to 4096 characters
             if len(message) > 4000:
                 message = message[:4000] + "\n... [Summary Truncated]"
                 
-            send_telegram_message(message)
+            success = send_telegram_message(message)
             
-            # Mark as processed
-            history.append(video_id)
-            save_history(history)
-            logger.info(f"Processing complete for {video_id}.")
+            if success:
+                # ONLY mark as processed if sending the message worked
+                history.append(video_id)
+                save_history(history)
+                logger.info(f"Processing complete for {video_id}.")
+            else:
+                logger.error("Failed to send Telegram message. Will retry on next run.")
         else:
-            logger.error("Failed to generate summary.")
+            logger.error("Failed to generate summary. Will retry on next run.")
     else:
-         logger.warning("No transcript available to summarize. We will still mark it as processed so we don't spam errors.")
-         # Optional: You might want to skip adding to history if you want to retry later if captions get auto-generated
+         # transcript is exactly ""
+         logger.warning("No english transcript available (none created by author or YouTube). Marking as processed to skip in future.")
          history.append(video_id)
          save_history(history)
 

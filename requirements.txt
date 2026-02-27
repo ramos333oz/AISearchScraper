@@ -1,4 +1,5 @@
-youtube-transcript-api
+yt-dlp
+webvtt-py
 feedparser
 openai
 python-dotenv
