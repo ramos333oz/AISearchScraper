@@ -92,8 +92,6 @@ def get_video_transcript(video_id):
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             ydl.download([f'https://www.youtube.com/watch?v={video_id}'])
             
-        # yt-dlp might save it as .en.vtt or similar depending on auto/manual
-        # Let's find the generated vtt file
         vtt_files = glob.glob(f"{video_id}*.vtt")
         
         if not vtt_files:
