@@ -88,7 +88,7 @@ def get_video_transcript(video_id):
         'outtmpl': f'{video_id}.%(ext)s', # Temporary filename
         'quiet': True,
         'no_warnings': True,
-        'format': 'bestaudio/best'    # Provide a format to avoid "Requested format is not available" error
+        'extractor_args': {'youtube': ['player_client=android']} # Pretend to be Android to bypass bot blocks
     }
     
     # Write cookies to a temporary file if provided
