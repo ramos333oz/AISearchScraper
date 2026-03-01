@@ -79,6 +79,7 @@ def get_video_transcript(video_id):
     logger.info(f"Attempting to fetch transcript for {video_id} using yt-dlp...")
     
     # We will save the subtitle temporarily
+    cookie_file = f"{video_id}_cookies.txt"
     ydl_opts = {
         'skip_download': True,        # Don't download the video
         'writesubtitles': True,       # Write manual subtitles
@@ -86,11 +87,11 @@ def get_video_transcript(video_id):
         'subtitleslangs': ['en'],     # English
         'outtmpl': f'{video_id}.%(ext)s', # Temporary filename
         'quiet': True,
-        'no_warnings': True
+        'no_warnings': True,
+        'format': 'bestaudio/best'    # Provide a format to avoid "Requested format is not available" error
     }
     
     # Write cookies to a temporary file if provided
-    cookie_file = f"{video_id}_cookies.txt"
     if YOUTUBE_COOKIES:
         try:
             with open(cookie_file, 'w', encoding='utf-8') as f:
