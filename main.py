@@ -18,6 +18,7 @@ OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
 YOUTUBE_CHANNEL_ID = os.getenv("YOUTUBE_CHANNEL_ID")
+YOUTUBE_COOKIES = os.getenv("YOUTUBE_COOKIES")
 
 # File to store processed video IDs
 HISTORY_FILE = "history.json"
@@ -88,6 +89,17 @@ def get_video_transcript(video_id):
         'no_warnings': True
     }
     
+    # Write cookies to a temporary file if provided
+    cookie_file = f"{video_id}_cookies.txt"
+    if YOUTUBE_COOKIES:
+        try:
+            with open(cookie_file, 'w', encoding='utf-8') as f:
+                f.write(YOUTUBE_COOKIES)
+            ydl_opts['cookiefile'] = cookie_file
+            logger.info("Using provided YOUTUBE_COOKIES.")
+        except Exception as e:
+            logger.warning(f"Failed to write cookie file: {e}")
+    
     try:
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             ydl.download([f'https://www.youtube.com/watch?v={video_id}'])
@@ -109,9 +121,11 @@ def get_video_transcript(video_id):
             if not full_transcript.endswith(text_cleaned + " "):
                 full_transcript += text_cleaned + " "
                 
-        # Clean up the file
+        # Clean up the files
         for f in vtt_files:
              os.remove(f)
+        if os.path.exists(cookie_file):
+             os.remove(cookie_file)
              
         return full_transcript.strip()
         
@@ -121,6 +135,9 @@ def get_video_transcript(video_id):
         vtt_files = glob.glob(f"{video_id}*.vtt")
         for f in vtt_files:
              try: os.remove(f) 
+             except: pass
+        if os.path.exists(cookie_file):
+             try: os.remove(cookie_file)
              except: pass
         return None # Return None meaning "Error, need to retry next time"
 

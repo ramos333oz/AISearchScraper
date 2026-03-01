@@ -21,6 +21,7 @@ It gives users a quick, actionable breakdown of high-value YouTube videos (speci
    - `TELEGRAM_BOT_TOKEN`: Your Telegram Bot Token.
    - `TELEGRAM_CHAT_ID`: Your Telegram Chat ID.
    - `YOUTUBE_CHANNEL_ID`: The ID of the YouTube channel to monitor.
+   - `YOUTUBE_COOKIES`: (Optional but recommended) Paste the content of your YouTube cookies to bypass bot detection. Extract these using a browser extension like "Get cookies.txt LOCALLY".
 
 2. Install the required dependencies:
 
@@ -45,7 +46,7 @@ To set up your own deployment:
 
 1. Push the code to a private GitHub repository.
 2. Configure **Repository Secrets** for
-   `OPENROUTER_API_KEY`, `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`, and `YOUTUBE_CHANNEL_ID`.
+   `OPENROUTER_API_KEY`, `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`, `YOUTUBE_CHANNEL_ID`, and `YOUTUBE_COOKIES`.
 3. Ensure **Workflow permissions** are set to "Read and write permissions" in Settings -> Actions -> General.
 
 ## 🔮 Future Implementations: Bulk & Monthly Scraping
